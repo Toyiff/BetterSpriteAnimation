@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Pixel Lumber</title>
+	<title>Better Animation</title>
 </head>
 <style>
 	* {
@@ -14,10 +14,15 @@
 		margin: auto;
 
 		image-rendering: pixelated;
+		image-rendering: -moz-pixelated;
+		image-rendering: -webkit-pixelated;
+		image-rendering: optimize-contrast;
+		-ms-interpolation-mode: nearest-neighbor;
 	}
 </style>
 <body>
 
+<script type="text/javascript" src="js/animation_data.js"></script>
 <script type="text/javascript" src="js/input.js"></script>
 <script type="text/javascript" src="js/resources.js"></script>
 <script type="text/javascript" src="js/character.js"></script>

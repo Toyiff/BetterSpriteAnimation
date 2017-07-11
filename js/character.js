@@ -32,23 +32,63 @@
 	Character.prototype.render = function(chain) {
 		this.spriteChains[chain].render(this.spriteUrl);
 	}
+
+	// console.log(interp);
+
+	var currentFrame;
+	var dir = _moveMentCheck();
+
+	if (this.animation.frames > 1) {
+		if (dir.x != 0 || dir.y != 0) {
+			var flatIndex = this.animation._frameIndex / (1000 / this.animation.fps);
+			// console.log("Flat Index: " + flatIndex);
+			currentFrame = Math.floor(flatIndex % this.animation.frames);
+			// console.log("Current Frame: " + currentFrame);
+		}
+		else {
+			currentFrame = 0;
+		}
+		
+		// console.log(currentFrame);
+	}
+
+	var x = -1;
+	var y = 0;
+	x += currentFrame * this.size[0];
+
+	// ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
+	if (this.sprite.dir == 0) {
+		ctx.drawImage(resources.get(this.sprite.url),
+		              x, y,
+		              this.size[0], this.size[1],
+		              this.pos.x, this.pos.y,
+		              this.size[0], this.size[1]);
+	}else {
+		ctx.save();
+
+		ctx.translate(this.pos.x + this.size[0] / 2, this.pos.y + this.size[1] / 2);
+		ctx.scale(-1, 1);
+		
+		ctx.drawImage(resources.get(this.sprite.url),
+		              x, y,
+		              this.size[0], this.size[1],
+		              -this.size[0]/2, -this.size[1]/2,
+		              this.size[0], this.size[1]);
+		
+		
+		ctx.restore();
+	}
+	
 	*/
 
-	function Character(url, width, height, speed, frames, fps) {
-		this.size = [];
-		this.size.push(width);
-		this.size.push(height);
-		this.speed = speed;
-		this.pos = {};
-		this.pos.x = 0;
-		this.pos.y = 0;
-		this.sprite = {};
-		this.sprite.url = url;
-		this.sprite.dir = 0;
-		this.animation = {};
-		this.animation.frames = frames;
-		this.animation.fps = fps;
-		this.animation._frameIndex = 0;
+	function Character(url, frames, x, y, scale) {
+		this.url = url;
+		this.frames = frames;
+		this._animationTime;
+		this._currentFrame = 0;
+		this.x = x;
+		this.y = y;
+		this.scale = scale;
 	}
 
 	Character.prototype.update = function(dt) {
@@ -56,70 +96,46 @@
 		var dir = _moveMentCheck();
 
 		if (dir.x != 0 || dir.y != 0) {
-			this.animation._frameIndex += dt;
-			this.pos.x += dir.x * this.speed * dt / 1000;
-			this.pos.y += dir.y * this.speed * dt / 1000;
-			if (dir.x == 1) {
-				this.sprite.dir = 0;
-			}
-			else {
-				this.sprite.dir = 1;
-
-			}
+			this._animationTime += dt;
 		} 
 		else {
-			this.animation._frameIndex = 0;
+			this._animationTime = 0;
 		}
-		
-		// console.log(this.animation._frameIndex);
+
 	}
 
 	Character.prototype.render = function(ctx, interp) {
-		// console.log(interp);
 
-		var currentFrame;
-		var dir = _moveMentCheck();
+		ctx.mozImageSmoothingEnabled = false;
+		ctx.webkitImageSmoothingEnabled = false;
+		ctx.msImageSmoothingEnabled = false;
+		ctx.imageSmoothingEnabled = false;
 
-		if (this.animation.frames > 1) {
-			if (dir.x != 0 || dir.y != 0) {
-				var flatIndex = this.animation._frameIndex / (1000 / this.animation.fps);
-				// console.log("Flat Index: " + flatIndex);
-				currentFrame = Math.floor(flatIndex % this.animation.frames);
-				// console.log("Current Frame: " + currentFrame);
+		var currentFrameDuration = this.frames[this._currentFrame].duration;
+
+		if (this._animationTime > currentFrameDuration) {
+			this._animationTime -= currentFrameDuration;
+			this._currentFrame++;
+			if (this._currentFrame >= this.frames.length) {
+				this._currentFrame = 0;
 			}
-			else {
-				currentFrame = 0;
-			}
-			
-			// console.log(currentFrame);
+			var distance = this.frames[this._currentFrame].distance;
+			this.x += distance * this.scale;
 		}
 
-		var x = -1;
-		var y = 0;
-		x += currentFrame * this.size[0];
+		// console.log(this._currentFrame);
 
-		// ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
-		if (this.sprite.dir == 0) {
-			ctx.drawImage(resources.get(this.sprite.url),
-			              x, y,
-			              this.size[0], this.size[1],
-			              this.pos.x, this.pos.y,
-			              this.size[0], this.size[1]);
-		}else {
-			ctx.save();
+		var sw = 4;
+		var sh = 9;
+		var sx = 4 * this._currentFrame;
+		var sy = 0;
 
-			ctx.translate(this.pos.x + this.size[0] / 2, this.pos.y + this.size[1] / 2);
-			ctx.scale(-1, 1);
-			
-			ctx.drawImage(resources.get(this.sprite.url),
-			              x, y,
-			              this.size[0], this.size[1],
-			              -this.size[0]/2, -this.size[1]/2,
-			              this.size[0], this.size[1]);
-			
-			
-			ctx.restore();
-		}
+		var w = this.scale * sw;
+		var h = this.scale * sh;
+
+		ctx.drawImage(resources.get(this.url),
+						sx, sy, sw, sh, 
+						this.x, this.y, w, h);
 		
 	}
 

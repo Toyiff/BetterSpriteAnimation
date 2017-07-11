@@ -1,7 +1,12 @@
 { "frames" : [
 	{
 		"width": 4,
-		"height": 9,
+		"height": 9
+		
+	},
+	{
+		"width": 4,
+		"height": 9
 		
 	}
 	]

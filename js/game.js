@@ -13,6 +13,7 @@ window.requestAnimationFrame = (function(){
 
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
+
 canvas.width = 1280;
 canvas.height = 800;
 document.body.appendChild(canvas);
@@ -39,8 +40,8 @@ var fps = 60,
     lastFpsUpdate = 0;
 
 // Game Variables
-var soldier,
-	soldier_speed = 200;
+var block,
+	block_speed = 200;
 
 
 
@@ -57,10 +58,7 @@ function init() {
 }
 
 resources.load([
-    'img/idle.png', 
-    'img/moving.png',
-    'img/eoe.gif',
-    'img/soldier_walk.png'
+    'img/block_jump.png'
 ]);
 resources.onReady(menuStart);
 
@@ -80,7 +78,8 @@ function menuStart() {
 function gameInit() {
 	gameState = "GAME_RUN";
 
-	soldier = new Character('img/soldier_walk.png', 120, 120, 200, 6, 12);
+	console.log(block_jump_frames);
+	block = new Character('img/block_jump.png', block_jump_frames, 10, 10, 10);
 
 	lastTick = window.performance.now();
 	framesThisSecond = 60;
@@ -99,7 +98,7 @@ function gameRun(tick) {
 	        fps = 0.75 * framesThisSecond + (1 - 0.75) * fps; // compute the new FPS
 	        lastFpsUpdate = tick;
 	        framesThisSecond = 0;
-	        if (_Debugging) console.log("FPS: " + fps);
+	        // if (_Debugging) console.log("FPS: " + fps);
 	    }
 
 	    if (fps < 15) {
@@ -172,14 +171,14 @@ function update(dt) {
 	// console.log("Update");
 	// boxPos += boxVelocity * dt;
 	// if (boxPos >= limit || boxPos <= 0) boxVelocity = -boxVelocity;
-	soldier.update(dt);
+	block.update(dt);
 
 }
 
 function render(interp) {
 	// console.log("Render");
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	soldier.render(ctx, interp);
+	block.render(ctx, interp);
 }
 
 function renderPaused() {
@@ -237,8 +236,8 @@ function keyPress(event) {
 
 				// These are for the testing of the speed of the object, the result is 1000 pxiel per second.
 				// var now = window.performance.now();
-				// var np = soldier.pos.x;
-				// console.log("soldier Speed: " + (np - _pp) / (now - _previous_time) * 1000);
+				// var np = block.pos.x;
+				// console.log("block Speed: " + (np - _pp) / (now - _previous_time) * 1000);
 				// _previous_time = now;
 				// _pp = np;
 			} else if (gameState == "GAME_PAUSE") {
@@ -257,7 +256,7 @@ function keyPress(event) {
 			}
 			break;
 		default:
-				console.log("Key Pressed" + event.keyCode);
+				// console.log("Key Code: " + event.keyCode);
 			return;
 	}
 
