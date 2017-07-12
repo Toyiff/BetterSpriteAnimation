@@ -2,93 +2,29 @@
 
 (function() {
 
-	//Can this sprite width and height be a series of number?
-
-	/*
-		Drifter = new Character("img/eoe.gif", {idle: idleSpriteChain, run: runSpriteChain})
-	*/
-
-	/* This is not very helpful
-	function SpriteChain(width, height, dir, number) {
-		this.width = width;
-		this.height = height;
-		this.dir = dir;
-		this.number = number;
-	}
-
-	SpriteCahin.prototype.render = function (url) {
-		ctx.drawImage(resources.get(url),
-                          0, 0,
-                          this.width, this.height,
-                          0, 0,
-                          this.size[0], this.size[1]))
-	}
-
-	function Character(spriteUrl, spriteChains) {
-		this.spriteUrl = spriteUrl;
-		this.spriteChains = spriteChains;
-	}
-
-	Character.prototype.render = function(chain) {
-		this.spriteChains[chain].render(this.spriteUrl);
-	}
-
-	// console.log(interp);
-
-	var currentFrame;
-	var dir = _moveMentCheck();
-
-	if (this.animation.frames > 1) {
-		if (dir.x != 0 || dir.y != 0) {
-			var flatIndex = this.animation._frameIndex / (1000 / this.animation.fps);
-			// console.log("Flat Index: " + flatIndex);
-			currentFrame = Math.floor(flatIndex % this.animation.frames);
-			// console.log("Current Frame: " + currentFrame);
-		}
-		else {
-			currentFrame = 0;
-		}
-		
-		// console.log(currentFrame);
-	}
-
-	var x = -1;
-	var y = 0;
-	x += currentFrame * this.size[0];
-
-	// ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
-	if (this.sprite.dir == 0) {
-		ctx.drawImage(resources.get(this.sprite.url),
-		              x, y,
-		              this.size[0], this.size[1],
-		              this.pos.x, this.pos.y,
-		              this.size[0], this.size[1]);
-	}else {
-		ctx.save();
-
-		ctx.translate(this.pos.x + this.size[0] / 2, this.pos.y + this.size[1] / 2);
-		ctx.scale(-1, 1);
-		
-		ctx.drawImage(resources.get(this.sprite.url),
-		              x, y,
-		              this.size[0], this.size[1],
-		              -this.size[0]/2, -this.size[1]/2,
-		              this.size[0], this.size[1]);
-		
-		
-		ctx.restore();
-	}
-	
-	*/
-
-	function Character(url, frames, x, y, scale) {
+	function Character(url, data, x, y, scale) {
 		this.url = url;
-		this.frames = frames;
+
+		this.sw = data.width;
+		this.sh = data.height;
+		this.frames = data.frames;
+
+		this._spriteToRender = {};
+		this._spriteToRender.sw = this.sw;
+		this._spriteToRender.sh = this.sh;
+		this._spriteToRender.sx = 0;
+		this._spriteToRender.sy = 0;
+		
 		this._animationTime;
 		this._currentFrame = 0;
+		this._tDistance = 0;
+
 		this.x = x;
 		this.y = y;
 		this.scale = scale;
+
+		this.isMoiving = false;
+		this.animationDone = true;
 	}
 
 	Character.prototype.update = function(dt) {
@@ -96,12 +32,93 @@
 		var dir = _moveMentCheck();
 
 		if (dir.x != 0 || dir.y != 0) {
-			this._animationTime += dt;
-		} 
-		else {
-			this._animationTime = 0;
+			this.isMoving = true;
+		} else {
+			this.isMoving = false;
 		}
 
+		// console.log(this._animationTime);
+		// console.log(this.isMoving);
+
+		if (!this.animationDone) {
+
+			this._animationTime += dt;
+			// console.log("Animation Time: " + this._animationTime);
+			// Continue Animating until it is done.
+
+			if (this._animationTime >= this.frames[this._currentFrame].duration) {
+
+				var currentFrameData = this.frames[this._currentFrame];
+				this._animationTime -= currentFrameData.duration;
+				var skipTDistance = false;
+
+				// console.log("Current Frame: " + this._currentFrame);
+				
+				switch (currentFrameData.type) {
+					case "I":
+					case "M":
+					case "F":
+						this._currentFrame++;
+						break;
+					case "C":
+						if (this.isMoving) {
+							this._currentFrame = currentFrameData.cFrameID;
+						} else {
+							this._currentFrame++;
+						}
+						break;
+					case "D":
+						this._currentFrame = 0;
+						this._animationTime = 0;
+						this.animationDone = true;
+						// this._tDistance = currentFrameData.tDistance;
+						// skipTDistance = true;
+						break;
+					case "T":
+						if (this.isMoving) {
+							this._currentFrame = currentFrameData.cFrameID;
+							this._tDistance = currentFrameData.tDistance;
+							skipTDistance = true;
+						} else {
+							this._currentFrame++;
+						}
+						break;
+					default:
+						break;
+
+				}
+
+				// if (this.frames[this._currentFrame].type == "D") {
+				// 	this._currentFrame = 0;
+				// 	this._animationTime = 0;
+				// 	this.animationDone = true;
+				// }
+				
+				this._updateRender(this._currentFrame, skipTDistance);
+			}
+
+		} else {
+			if (this.isMoving) {
+				this.animationDone = false;
+			}else {
+				this._animationTime = 0;
+			}
+		}
+	}
+
+	Character.prototype._updateRender = function(currentFrame, skipTDistance) {
+
+		// console.log(currentFrame);
+
+		if (!skipTDistance) {
+			this.x += this.frames[currentFrame].distance * this.scale;	
+		} else {
+			this.x += (this.frames[currentFrame].distance + this._tDistance) * this.scale;
+			this._tDistance = 0;
+		}
+		
+		this._spriteToRender.sx = this.sw * this.frames[currentFrame].sID;
+		this._spriteToRender.sy = 0;
 	}
 
 	Character.prototype.render = function(ctx, interp) {
@@ -111,33 +128,48 @@
 		ctx.msImageSmoothingEnabled = false;
 		ctx.imageSmoothingEnabled = false;
 
-		var currentFrameDuration = this.frames[this._currentFrame].duration;
-
-		if (this._animationTime > currentFrameDuration) {
-			this._animationTime -= currentFrameDuration;
-			this._currentFrame++;
-			if (this._currentFrame >= this.frames.length) {
-				this._currentFrame = 0;
-			}
-			var distance = this.frames[this._currentFrame].distance;
-			this.x += distance * this.scale;
-		}
-
-		// console.log(this._currentFrame);
-
-		var sw = 4;
-		var sh = 9;
-		var sx = 4 * this._currentFrame;
-		var sy = 0;
-
-		var w = this.scale * sw;
-		var h = this.scale * sh;
+		var w = this._spriteToRender.sw * this.scale;
+		var h = this._spriteToRender.sh * this.scale;
 
 		ctx.drawImage(resources.get(this.url),
-						sx, sy, sw, sh, 
+						this._spriteToRender.sx, this._spriteToRender.sy,
+						this._spriteToRender.sw, this._spriteToRender.sh, 
 						this.x, this.y, w, h);
+
+		// [TODO] 
+		// 1. An animation state controller
+		// 2. Let the player able to skip frame if there is not enough frames.
+		// 3. Collision Box
+		// 4. Vertical movement as well.
+		// 5. An external editor that allows easier animation control
+		
+		// if (this._animationTime > currentFrameDuration) {
+		// 	this._animationTime -= currentFrameDuration;
+		// 	this._currentFrame++;
+		// 	if (this._currentFrame >= this.frames.length) {
+		// 		this._currentFrame = 0;
+		// 	}
+		// 	var distance = this.frames[this._currentFrame].distance;
+		// 	this.x += distance * this.scale;
+		// }
+
+		// // console.log(this._currentFrame);
+
+		// var sw = 4;
+		// var sh = 9;
+		// var sx = 4 * this._currentFrame;
+		// var sy = 0;
+
+		// var w = this.scale * sw;
+		// var h = this.scale * sh;
+
+		// ctx.drawImage(resources.get(this.url),
+		// 				sx, sy, sw, sh, 
+		// 				this.x, this.y, w, h);
 		
 	}
+
+	
 
 	function _moveMentCheck() {
 

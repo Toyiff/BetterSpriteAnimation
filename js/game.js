@@ -40,8 +40,8 @@ var fps = 60,
     lastFpsUpdate = 0;
 
 // Game Variables
-var block,
-	block_speed = 200;
+var man,
+	man_speed = 200;
 
 
 
@@ -58,7 +58,7 @@ function init() {
 }
 
 resources.load([
-    'img/block_jump.png'
+    'img/man_walk.png'
 ]);
 resources.onReady(menuStart);
 
@@ -76,10 +76,10 @@ function menuStart() {
 }
 
 function gameInit() {
+
 	gameState = "GAME_RUN";
 
-	console.log(block_jump_frames);
-	block = new Character('img/block_jump.png', block_jump_frames, 10, 10, 10);
+	man = new Character('img/man_walk.png', manWalkSprites, 10, 10, 10);
 
 	lastTick = window.performance.now();
 	framesThisSecond = 60;
@@ -171,14 +171,14 @@ function update(dt) {
 	// console.log("Update");
 	// boxPos += boxVelocity * dt;
 	// if (boxPos >= limit || boxPos <= 0) boxVelocity = -boxVelocity;
-	block.update(dt);
+	man.update(dt);
 
 }
 
 function render(interp) {
 	// console.log("Render");
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	block.render(ctx, interp);
+	man.render(ctx, interp);
 }
 
 function renderPaused() {
@@ -236,8 +236,8 @@ function keyPress(event) {
 
 				// These are for the testing of the speed of the object, the result is 1000 pxiel per second.
 				// var now = window.performance.now();
-				// var np = block.pos.x;
-				// console.log("block Speed: " + (np - _pp) / (now - _previous_time) * 1000);
+				// var np = man.pos.x;
+				// console.log("man Speed: " + (np - _pp) / (now - _previous_time) * 1000);
 				// _previous_time = now;
 				// _pp = np;
 			} else if (gameState == "GAME_PAUSE") {
