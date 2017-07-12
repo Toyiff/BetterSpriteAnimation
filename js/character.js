@@ -137,10 +137,10 @@
 						this.x, this.y, w, h);
 
 		// [TODO] 
-		// 1. An animation state controller
-		// 2. Let the player able to skip frame if there is not enough frames.
+		// 1. An animation state controller DONE!
+		// 1a. Support All Four Directions.
+		// 2. Add support for keyframe and fillframes. (The idea is that when resources allowed, fillframes will display, and when not, only keyframes will display)
 		// 3. Collision Box
-		// 4. Vertical movement as well.
 		// 5. An external editor that allows easier animation control
 		
 		// if (this._animationTime > currentFrameDuration) {
